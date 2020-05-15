@@ -34,5 +34,3 @@ articles = results['articles']
 
 summaries = [article['summary'] for article in articles]
 titles = [article['title'] for article in articles]
-
-'''
