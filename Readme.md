@@ -20,6 +20,9 @@ from newscatcher import urls, describe_url
 politic_urls = urls(topic = 'politics') # set topic, language, and/or country
 american_urls = urls(country = 'US')
 american_politics_urls = urls(country = 'US', topic = 'politics')
+american_english_politics_urls = urls(country = 'US', topic = 'politics', language = 'en') 
+#note some websites do not explicitly declare their language 
+#as a result they will be excluded from queries based on language
 
 websites = urls(topic = 'finance', language = 'en') 
 #bloomberg.com, yahoofinance.com ...
