@@ -25,7 +25,7 @@ websites = urls(topic = 'finance', language = 'en')
 #bloomberg.com, yahoofinance.com ...
 
 ret = describe_url(websites[0])#bloomberg.com
-ret = {'url' : 'bloomberg.com', 'language' : 'en', 'country' : 'us' , 'topics' : topics} #topics = topics this url offers useful when creating the Newscatcher object
+ret = {'url' : 'bloomberg.com', 'language' : 'en', 'country' : 'us' , 'topics' : topics} #topics = topics offered by this url, useful when creating the Newscatcher object
 ```
 
 Analyzing articles
@@ -41,6 +41,8 @@ titles = articles['title']
 
 
 #usage with optional topic field
-nc = Newscatcher(website = 'nytimes.com', topic = 'politics')
+
+nc = Newscatcher(website = 'nytimes.com', topic = 'politics') #topics available for a website may be found with the describe_url function
+
 results = nc.search()
 articles = results['articles']
