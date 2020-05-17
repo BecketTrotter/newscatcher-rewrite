@@ -31,12 +31,16 @@ ret = describe_url(websites[0])#bloomberg.com
 ret = {'url' : 'bloomberg.com', 'language' : 'en', 'country' : 'us' , 'topics' : topics} #topics = topics offered by this url, useful when creating the Newscatcher object
 ```
 
-Analyzing articles
+articles / titles
 ```python
 from newscatcher import Newscatcher
 
 nc = Newscatcher(website = 'nytimes.com')
 results = nc.search()
+
+#results.keys() = 'url', 'language', 'country', 'articles'
+
+
 articles = results['articles']
 
 summaries = articles['summary']
