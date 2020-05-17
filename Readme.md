@@ -42,7 +42,7 @@ titles = articles['title']
 
 #usage with optional topic field
 
-nc = Newscatcher(website = 'nytimes.com', topic = 'politics') #topics available for a website may be found with the describe_url function
+nc = Newscatcher(website = 'nytimes.com', topic = 'politics') #topics available for a website, may be found with the describe_url function
 
 results = nc.search()
 articles = results['articles']
