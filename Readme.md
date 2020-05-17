@@ -12,25 +12,35 @@ pip install newscatcher
 
 ## Usage
 
-Searching for urls
+urls and describe_url
 ```python
-from newscatcher import Newscatcher, urls, describe_url
+from newscatcher import urls, describe_url
 
-websites = urls(topic = 'finance', language = 'en') # set topic, language, country
+
+politic_urls = urls(topic = 'politics') # set topic, language, and/or country
+american_urls = urls(country = 'US')
+american_politics_urls = urls(country = 'US', topic = 'politics')
+
+websites = urls(topic = 'finance', language = 'en') 
 #bloomberg.com, yahoofinance.com ...
 
-describe_url(websites[0])#bloomberg.com
-ret = {'url' : 'bloomberg.com', 'language' : 'en', 'country' : 'us' , 'topics' : topics}
+ret = describe_url(websites[0])#bloomberg.com
+ret = {'url' : 'bloomberg.com', 'language' : 'en', 'country' : 'us' , 'topics' : topics} #topics = topics this url offers useful when creating the Newscatcher object
 ```
 
 Analyzing articles
-
 ```python
 from newscatcher import Newscatcher
 
 nc = Newscatcher(website = 'nytimes.com')
-results = nc.search() 
+results = nc.search()
 articles = results['articles']
 
-summaries = [article['summary'] for article in articles]
-titles = [article['title'] for article in articles]
+summaries = articles['summary']
+titles = articles['title']
+
+
+#usage with optional topic field
+nc = Newscatcher(website = 'nytimes.com', topic = 'politics')
+results = nc.search()
+articles = results['articles']
