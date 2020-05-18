@@ -43,9 +43,8 @@ results = nc.search()
 
 articles = results['articles']
 
-summaries = articles['summary']
-titles = articles['title']
-
+first_article_summary = articles[0]['summary']
+first_article_title = articles[0]['title']
 
 #usage with optional topic field
 
