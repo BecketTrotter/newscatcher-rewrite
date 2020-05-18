@@ -9,78 +9,6 @@ from tldextract import extract
 
 
 DB_FILE = pkg_resources.resource_filename('newscatcher', 'data/package_rss.db')
-#DB_FILE = 'data/package_rss.db'
-
-class Query:
-	#Query class used to build subsequent sql queries
-	def __init__(self):
-		self.params = {'website': None, 'topic': None}
-
-	def build_conditional(self, field, sql_field):
-		#single conditional build
-		field = field.lower()
-		sql_field = sql_field.lower()
-
-		if self.params[field] != None:
-			conditional = "{} = '{}'".format(sql_field, self.params[field])
-			return conditional
-		return
-
-
-	def build_where(self):
-		#returning the conditional from paramters
-		#the post "WHERE"
-		conditionals = []
-
-		conv = {'topic' : 'topic_unified', 'website' : 'clean_url'}
-
-		for field in conv.keys():
-			cond = self.build_conditional(field, conv[field])
-			if cond != None:
-				conditionals.append(cond)
-
-		if conditionals == []:
-			return
-
-		conditionals[0] = 'WHERE ' + conditionals[0]
-		conditionals = ''' AND '.join([x for x in conditionals if x != None])
-		+ ' ORDER BY IFNULL(Globalrank,999999);'''
-
-
-		return conditionals
-
-
-	def build_sql(self):
-		#build sql on user qeury
-		db = sqlite3.connect(DB_FILE, isolation_level=None)
-		sql = 'SELECT rss_url from rss_main ' + self.build_where()
-
-		db.close()
-		return sql
-
-
-def unique(field):
-	#return unique values from given field
-	field = field.lower()
-	alt = {'country' : 'clean_country', 'url' : 'clean_url', 'topic' : 'topic_unified',
-		   'language' : 'language', 'website' : 'clean_url'}
-	vals = [alt[x] for x in alt.keys()]
-
-	if field not in alt.keys() and field not in vals:
-		sys.exit('{} not in {}'.format(field, vals))
-
-	if field in alt.keys():
-		field = alt[field]
-
-	sql = 'SELECT DISTINCT {} FROM rss_main;'.format(field)
-	db = sqlite3.connect(DB_FILE, isolation_level=None)
-	try:
-		ret = [x[0] for x in db.execute(sql).fetchall()]
-	except:
-		db.close()
-	db.close()
-	return ret
-
 
 def clean_url(dirty_url):
 	#website.com
@@ -103,16 +31,33 @@ def classify_url(url, curr):
 
 class Newscatcher:
 	#search engine
+	def build_sql(self):
+		if self.topic is None:
+			sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}';'''
+			sql = sql.format(self.url)
+			return sql
+
 	def __init__(self, website, topic=None):
 		#init with given params
 		website = website.lower()
-		self.q = Query()
-		website = clean_url(website)
-		self.q.params = {'website' : website, 'topic' : topic}
+		self.url = clean_url(website)
+		self.topic = topic
+		
 
 	def search(self, n=None):
 		#return results based on current stream
-		sql = self.q.build_sql()
+		if self.topic is None:
+			sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}' AND main = 1;'''
+			sql = sql.format(self.url)
+		else:
+			sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}' AND topic_unified = '{}';'''
+			sql = sql.format(self.url, self.topic)
+
+		
+
 		db = sqlite3.connect(DB_FILE, isolation_level=None)
 
 		try:
@@ -132,17 +77,20 @@ class Newscatcher:
 		else:
 			articles = feed['entries'][:n]
 
-		sql = '''SELECT topic_unified, language, clean_country 
-				 FROM rss_main WHERE clean_url = '{}' and main = 1;'''
+		if self.topic is None:
+			sql = '''SELECT topic_unified, language, clean_country 
+					 FROM rss_main WHERE clean_url = '{}' and main = 1;'''
+			sql = sql.format(self.url)
+		else:
+			sql = '''SELECT topic_unified, language, clean_country 
+					 FROM rss_main WHERE clean_url = '{}' and topic_unified = '{}';'''
+			sql = sql.format(self.url, self.topic)
 
-		sql = sql.format(self.q.params['website'])
-
+	
 		topic, language, country = db.execute(sql).fetchone()
 
-		meta = {'url' : self.q.params['website'], 'topic' : topic,
+		meta = {'url' : self.url, 'topic' : topic,
 				'language' : language, 'country' : country}
-
-
 
 		db.close()
 		return {'url': meta['url'], 'main_topic' : meta['topic'],
