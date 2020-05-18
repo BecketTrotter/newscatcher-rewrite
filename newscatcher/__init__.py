@@ -1,20 +1,23 @@
-__version__ = '0.1.0'
-
+#Retrieve and analyze
+#24/7 streams of news data
+import sys
 import sqlite3
 import requests
 import feedparser
 import pkg_resources
 from tldextract import extract
-import sys
+
 
 DB_FILE = pkg_resources.resource_filename('newscatcher', 'data/package_rss.db')
 #DB_FILE = 'data/package_rss.db'
 
 class Query:
+	#Query class used to build subsequent sql queries
 	def __init__(self):
 		self.params = {'website': None, 'topic': None}
 
 	def build_conditional(self, field, sql_field):
+		#single conditional build
 		field = field.lower()
 		sql_field = sql_field.lower()
 
@@ -22,9 +25,11 @@ class Query:
 			conditional = "{} = '{}'".format(sql_field, self.params[field])
 			return conditional
 		return
-		#single conditional
-		
+
+
 	def build_where(self):
+		#returning the conditional from paramters
+		#the post "WHERE"
 		conditionals = []
 
 		conv = {'topic' : 'topic_unified', 'website' : 'clean_url'}
@@ -36,30 +41,34 @@ class Query:
 
 		if conditionals == []:
 			return
-		
+
 		conditionals[0] = 'WHERE ' + conditionals[0]
-		conditionals = ' AND '.join([x for x in conditionals if x != None]) + ' ORDER BY IFNULL(Globalrank,999999);'
+		conditionals = ''' AND '.join([x for x in conditionals if x != None])
+		+ ' ORDER BY IFNULL(Globalrank,999999);'''
 
 
 		return conditionals
-		#returning the conditional from paramters
+
 
 	def build_sql(self):
+		#build sql on user qeury
 		db = sqlite3.connect(DB_FILE, isolation_level=None)
 		sql = 'SELECT rss_url from rss_main ' + self.build_where()
 
 		db.close()
 		return sql
-		#build sql on user qeury
 
-def unique(field): #rename this?
+
+def unique(field):
+	#return unique values from given field
 	field = field.lower()
-	alt = {'country' : 'clean_country', 'url' : 'clean_url', 'topic' : 'topic_unified', 'language' : 'language', 'website' : 'clean_url'}
+	alt = {'country' : 'clean_country', 'url' : 'clean_url', 'topic' : 'topic_unified',
+		   'language' : 'language', 'website' : 'clean_url'}
 	vals = [alt[x] for x in alt.keys()]
 
 	if field not in alt.keys() and field not in vals:
 		sys.exit('{} not in {}'.format(field, vals))
-	
+
 	if field in alt.keys():
 		field = alt[field]
 
@@ -71,51 +80,38 @@ def unique(field): #rename this?
 		db.close()
 	db.close()
 	return ret
-	#return unique values from given field
 
 
 def clean_url(dirty_url):
+	#website.com
 	dirty_url = dirty_url.lower()
 	o = extract(dirty_url)
 	return o.domain + '.' + o.suffix
-	#website.com
+
 
 def classify_url(url, curr):
+	#url -> topic_unified, language, clean_country, clean_url
 	url = url.lower()
 	url = clean_url(url)
-	ret = curr.execute("SELECT topic_unified, language, clean_country, clean_url from rss_main WHERE clean_url = '{}' AND main = 1".format(url)).fetchone()
+
+	sql = '''SELECT topic_unified, language, clean_country,
+	clean_url from rss_main WHERE clean_url = '{}' AND main = 1'''
+
+	ret = curr.execute(sql.format(url)).fetchone()
 	return ret
-	#url -> topic_unified, language, clean_country, clean_url 
+
 
 class Newscatcher:
-	def __init__(self, website, topic = None):
+	#search engine
+	def __init__(self, website, topic=None):
+		#init with given params
 		website = website.lower()
 		self.q = Query()
 		website = clean_url(website)
 		self.q.params = {'website' : website, 'topic' : topic}
 
-	def set_field(self, field, value):
-		field = field.lower()
-		value = value.lower()
-
-		if field == 'website':
-			value = clean_url(value)
-
-		if field not in self.q.params.keys():
-			sys.exit('{} not in {}'.format(field, list(self.q.params.keys())))
-
-		if value != None:
-			field = field.lower()
-			value = value.lower()
-		self.q.params[field] = value
-	#change paramters
-
-	
-	def fields(self):
-		return ['website', 'topic']
-	#these are our available fields
-
-	def search(self, n = None):
+	def search(self, n=None):
+		#return results based on current stream
 		sql = self.q.build_sql()
 		db = sqlite3.connect(DB_FILE, isolation_level=None)
 
@@ -136,27 +132,31 @@ class Newscatcher:
 		else:
 			articles = feed['entries'][:n]
 
+		sql = '''SELECT topic_unified, language, clean_country 
+				 FROM rss_main WHERE clean_url = '{}' and main = 1;'''
 
-		ret = []
-		topic, language, country = db.execute("SELECT topic_unified, language, clean_country FROM rss_main WHERE clean_url = '{}' and main = 1;".format(self.q.params['website'])).fetchone()
+		sql = sql.format(self.q.params['website'])
 
-		meta = {'url' : self.q.params['website'], 'topic' : topic, 'language' : language, 'country' : country}
-		
-		if self.q.params['topic'] != None:
-			topic = self.q.params['topic']
+		topic, language, country = db.execute(sql).fetchone()
+
+		meta = {'url' : self.q.params['website'], 'topic' : topic,
+				'language' : language, 'country' : country}
+
 
 
 		db.close()
-		return {'url': meta['url'], 'main_topic' : meta['topic'], 'language' : meta['language'], 'country' : meta['country'], 'articles':articles}
+		return {'url': meta['url'], 'main_topic' : meta['topic'],
+		'language' : meta['language'], 'country' : meta['country'], 'articles':articles}
 
 def describe_url(website):
+	#return newscatcher fields that correspond to the url
 	website = website.lower()
 	website = clean_url(website)
 	db = sqlite3.connect(DB_FILE, isolation_level=None)
-	
+
 	sql = "SELECT * from rss_main WHERE clean_url = '{}' and main == 1 ".format(website)
 	results = db.execute(sql).fetchone()
-	
+
 
 	if results == None:
 		sys.exit('\nWebsite not supported\n')
@@ -175,6 +175,7 @@ def describe_url(website):
 
 
 def urls(topic = None, language = None, country = None):
+	#return urls that matches users parameters
 	if language != None:
 		language = language.lower()
 
@@ -191,7 +192,8 @@ def urls(topic = None, language = None, country = None):
 		quick_q.params[x] = inp[x]
 
 	conditionals = []
-	conv = {'topic' : 'topic_unified', 'website' : 'clean_url', 'country' : 'clean_country', 'language' : 'language'}
+	conv = {'topic' : 'topic_unified', 'website' : 'clean_url',
+			'country' : 'clean_country', 'language' : 'language'}
 
 	for field in conv.keys():
 		try:
@@ -208,7 +210,8 @@ def urls(topic = None, language = None, country = None):
 		sql = 'SELECT clean_url from rss_main '
 	else:
 		conditionals[0] = ' WHERE ' + conditionals[0]
-		conditionals = ' AND '.join([x for x in conditionals if x != None]) + ' AND main = 1 ORDER BY IFNULL(Globalrank,999999);'
+		conditionals = ' AND '.join([x for x in conditionals if x is not None]) 
+		conditionals += ' AND main = 1 ORDER BY IFNULL(Globalrank,999999);'
 		sql = 'SELECT DISTINCT clean_url from rss_main' + conditionals
 
 	ret = db.execute(sql).fetchall()
