@@ -54,8 +54,8 @@ results = nc.search()
 articles = results['articles']
 ```
 
-Country Codes
+## Country Codes
 'US', 'GB', 'DE', 'FR', 'IN', 'RU', 'ES', 'BR', 'IT', 'CA', 'AU', 'NL', 'PL', 'NZ', 'PT', 'RO', 'UA', 'JP', 'AR', 'IR', 'IE', 'PH', 'IS', 'ZA', 'AT', 'CL', 'HR', 'BG', 'HU', 'KR', 'SZ', 'AE', 'EG', 'VE', 'CO', 'SE', 'CZ', 'ZH', 'MT', 'AZ', 'GR', 'BE', 'LU', 'IL', 'LT', 'NI', 'MY', 'TR', 'BM', 'NO', 'ME', 'SA', 'RS', 'BA'
 
-Topics
+## Topics
 'tech', 'news', 'business', 'science', 'finance', 'food', 'politics', 'economics', 'travel', 'entertainment', 'music', 'sport', 'world'
