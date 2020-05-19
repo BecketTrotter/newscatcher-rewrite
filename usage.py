@@ -1,6 +1,5 @@
-from newscatcher import Newscatcher
+from feedparser import parse
 
-
-nc = Newscatcher('seekingalpha.com', 'finance')
-ret = nc.search(25)
-print(len(ret['articles']))
+rss_endpoint = 'http://www.lemonde.fr/rss/tag/international.xml'
+feed = parse(rss_endpoint)
+print(feed['entries'])

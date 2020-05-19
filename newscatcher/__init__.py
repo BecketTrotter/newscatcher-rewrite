@@ -29,6 +29,26 @@ def classify_url(url, curr):
 	return ret
 
 
+def alt_feed(url):
+	db = sqlite3.connect(DB_FILE, isolation_level=None)
+	sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}';'''
+	sql = sql.format(url)
+	rss_endpoints = db.execute(sql).fetchall()
+
+	for rss_endpoint in rss_endpoints:
+		
+		rss_endpoint = db.execute(sql).fetchone()[0]
+		feed = feedparser.parse(rss_endpoint)
+		print(feed)
+		if feed['entries'] != []:
+			return feed
+
+	db.close()
+	return -1
+
+
+
 class Newscatcher:
 	#search engine
 	def build_sql(self):
@@ -43,6 +63,7 @@ class Newscatcher:
 		website = website.lower()
 		self.url = clean_url(website)
 		self.topic = topic
+
 		
 
 	def search(self, n=None):
@@ -64,13 +85,30 @@ class Newscatcher:
 			rss_endpoint = db.execute(sql).fetchone()[0]
 			feed = feedparser.parse(rss_endpoint)
 		except:
-			db.close()
-			sys.exit('\nWebsite is not supported\n')
+			if self.topic is not None:
+				sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}';'''
+				sql = sql.format(self.url)
+				
+				if len(db.execute(sql).fetchall()) > 0:
+					db.close()
+					sys.exit('Topic is not supported')
+				else:
+					sys.exit('Website is not supported')
+					db.close()
+
+
+				
+				
+				
 
 
 		if feed['entries'] == []:
-			db.close()
-			sys.exit('\nno results found check internet connection or query paramters\n')
+			feed = alt_feed(self.url)
+
+			if feed == -1:
+				db.close()
+				sys.exit('\nno results found check internet connection or query paramters\n')
 
 		if n == None or len(feed['entries']) <= n:
 			articles = feed['entries']#['summary']#[0].keys()
