@@ -9,6 +9,52 @@ from tldextract import extract
 
 
 DB_FILE = pkg_resources.resource_filename('newscatcher', 'data/package_rss.db')
+class Query:
+	#Query class used to build subsequent sql queries
+	def __init__(self):
+		self.params = {'website': None, 'topic': None}
+
+	def build_conditional(self, field, sql_field):
+		#single conditional build
+		field = field.lower()
+		sql_field = sql_field.lower()
+
+		if self.params[field] != None:
+			conditional = "{} = '{}'".format(sql_field, self.params[field])
+			return conditional
+		return
+
+
+	def build_where(self):
+		#returning the conditional from paramters
+		#the post "WHERE"
+		conditionals = []
+
+		conv = {'topic' : 'topic_unified', 'website' : 'clean_url'}
+
+		for field in conv.keys():
+			cond = self.build_conditional(field, conv[field])
+			if cond != None:
+				conditionals.append(cond)
+
+		if conditionals == []:
+			return
+
+		conditionals[0] = 'WHERE ' + conditionals[0]
+		conditionals = ''' AND '.join([x for x in conditionals if x != None])
+		+ ' ORDER BY IFNULL(Globalrank,999999);'''
+
+
+		return conditionals
+
+
+	def build_sql(self):
+		#build sql on user qeury
+		db = sqlite3.connect(DB_FILE, isolation_level=None)
+		sql = 'SELECT rss_url from rss_main ' + self.build_where()
+
+		db.close()
+		return sql
 
 def clean_url(dirty_url):
 	#website.com
