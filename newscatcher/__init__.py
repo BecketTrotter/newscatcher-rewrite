@@ -124,8 +124,9 @@ class Newscatcher:
 			sql = sql.format(self.url, self.topic)
 
 		
-
+		
 		db = sqlite3.connect(DB_FILE, isolation_level=None)
+		
 
 		try:
 			rss_endpoint = db.execute(sql).fetchone()[0]
@@ -138,23 +139,20 @@ class Newscatcher:
 				
 				if len(db.execute(sql).fetchall()) > 0:
 					db.close()
-					sys.exit('Topic is not supported')
+					print('Topic is not supported')
+					return
 				else:
-					sys.exit('Website is not supported')
+					print('Website is not supported')
+					return
 					db.close()
-
-
-				
-				
-				
-
+			else:
+				print('Website is not supported')
+				return 
 
 		if feed['entries'] == []:
-			feed = alt_feed(self.url)
-
-			if feed == -1:
-				db.close()
-				sys.exit('\nno results found check internet connection or query paramters\n')
+			db.close()
+			print('\nno results found check internet connection or query paramters\n')
+			return
 
 		if n == None or len(feed['entries']) <= n:
 			articles = feed['entries']#['summary']#[0].keys()
@@ -191,12 +189,16 @@ def describe_url(website):
 
 
 	if results == None:
-		sys.exit('\nWebsite not supported\n')
+		print('\nWebsite not supported\n')
+		return
 
 	sql = "SELECT topic_unified from rss_main WHERE clean_url = '{}' and main = 1".format(website)
 	main = db.execute(sql).fetchone()[0]
+	
 	if len(main) == 0:
-		sys.exit('\nWebsite note supported\n')
+		print('\nWebsite note supported\n')
+		return
+
 	sql = "SELECT DISTINCT topic_unified from rss_main WHERE clean_url = '{}'".format(website)
 	topics = db.execute(sql).fetchall()
 	topics = [x[0] for x in topics]
@@ -248,7 +250,8 @@ def urls(topic = None, language = None, country = None):
 
 	ret = db.execute(sql).fetchall()
 	if len(ret) == 0:
-		sys.exit('\nNo websites found for given parameters\n')
+		print('\nNo websites found for given parameters\n')
+		return
 
 	db.close()
 	return [x[0] for x in ret]
