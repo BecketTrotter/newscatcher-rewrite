@@ -128,7 +128,19 @@ class Newscatcher:
 		return title_list
 
 	def print_headlines(self, n=None):
-		print(self.get_headlines(n))
+		headlines = self.get_headlines(n)
+
+		i =1
+		for headline in headlines:
+			if i < 10:
+				print(str(i) + '.   |  ' + headline )
+				i += 1
+			elif i in list(range(10,100)):
+				print(str(i) + '.  |  ' + headline )
+				i += 1
+			else:
+				print(str(i) + '. |  ' + headline )
+				i += 1       
 
 	def get_news(self, n=None):
 		#return results based on current stream
