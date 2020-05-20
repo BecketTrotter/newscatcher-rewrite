@@ -130,7 +130,7 @@ class Newscatcher:
 				'language' : language, 'country' : country}
 
 		db.close()
-		return {'url': meta['url'], 'main_topic' : meta['topic'],
+		return {'url': meta['url'], 'main_topic' : topic,
 		'language' : meta['language'], 'country' : meta['country'], 'articles':articles}
 
 def describe_url(website):
