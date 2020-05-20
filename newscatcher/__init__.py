@@ -62,39 +62,6 @@ def clean_url(dirty_url):
 	o = extract(dirty_url)
 	return o.domain + '.' + o.suffix
 
-
-def classify_url(url, curr):
-	#url -> topic_unified, language, clean_country, clean_url
-	url = url.lower()
-	url = clean_url(url)
-
-	sql = '''SELECT topic_unified, language, clean_country,
-	clean_url from rss_main WHERE clean_url = '{}' AND main = 1'''
-
-	ret = curr.execute(sql.format(url)).fetchone()
-	return ret
-
-
-def alt_feed(url):
-	db = sqlite3.connect(DB_FILE, isolation_level=None)
-	sql = '''SELECT rss_url from rss_main 
-					 WHERE clean_url = '{}';'''
-	sql = sql.format(url)
-	rss_endpoints = db.execute(sql).fetchall()
-
-	for rss_endpoint in rss_endpoints:
-		
-		rss_endpoint = db.execute(sql).fetchone()[0]
-		feed = feedparser.parse(rss_endpoint)
-		print(feed)
-		if feed['entries'] != []:
-			return feed
-
-	db.close()
-	return -1
-
-
-
 class Newscatcher:
 	#search engine
 	def build_sql(self):
@@ -115,21 +82,18 @@ class Newscatcher:
 	def search(self, n=None):
 		#return results based on current stream
 		if self.topic is None:
-			sql = '''SELECT rss_url from rss_main 
+			sql = '''SELECT rss_url,topic_unified, language, clean_country from rss_main 
 					 WHERE clean_url = '{}' AND main = 1;'''
 			sql = sql.format(self.url)
 		else:
-			sql = '''SELECT rss_url from rss_main 
+			sql = '''SELECT rss_url, topic_unified, language, clean_country from rss_main 
 					 WHERE clean_url = '{}' AND topic_unified = '{}';'''
 			sql = sql.format(self.url, self.topic)
 
-		
-		
 		db = sqlite3.connect(DB_FILE, isolation_level=None)
-		
 
 		try:
-			rss_endpoint = db.execute(sql).fetchone()[0]
+			rss_endpoint, topic, language, country = db.execute(sql).fetchone()
 			feed = feedparser.parse(rss_endpoint)
 		except:
 			if self.topic is not None:
@@ -151,7 +115,7 @@ class Newscatcher:
 
 		if feed['entries'] == []:
 			db.close()
-			print('\nno results found check internet connection or query paramters\n')
+			print('\nNo results found check internet connection or query parameters\n')
 			return
 
 		if n == None or len(feed['entries']) <= n:
@@ -159,17 +123,8 @@ class Newscatcher:
 		else:
 			articles = feed['entries'][:n]
 
-		if self.topic is None:
-			sql = '''SELECT topic_unified, language, clean_country 
-					 FROM rss_main WHERE clean_url = '{}' and main = 1;'''
-			sql = sql.format(self.url)
-		else:
-			sql = '''SELECT topic_unified, language, clean_country 
-					 FROM rss_main WHERE clean_url = '{}' and topic_unified = '{}';'''
-			sql = sql.format(self.url, self.topic)
-
 	
-		topic, language, country = db.execute(sql).fetchone()
+		
 
 		meta = {'url' : self.url, 'topic' : topic,
 				'language' : language, 'country' : country}
@@ -184,22 +139,19 @@ def describe_url(website):
 	website = clean_url(website)
 	db = sqlite3.connect(DB_FILE, isolation_level=None)
 
-	sql = "SELECT * from rss_main WHERE clean_url = '{}' and main == 1 ".format(website)
-	results = db.execute(sql).fetchone()
+	sql = "SELECT topic_unified from rss_main WHERE clean_url = '{}' and main == 1 ".format(website)
+	main = db.execute(sql).fetchone()[0]
 
 
 	if results == None:
 		print('\nWebsite not supported\n')
 		return
-
-	sql = "SELECT topic_unified from rss_main WHERE clean_url = '{}' and main = 1".format(website)
-	main = db.execute(sql).fetchone()[0]
 	
 	if len(main) == 0:
 		print('\nWebsite note supported\n')
 		return
 
-	sql = "SELECT DISTINCT topic_unified from rss_main WHERE clean_url = '{}'".format(website)
+	sql = "SELECT DISTINCT topic_unified from rss_main WHERE clean_url == '{}'".format(website)
 	topics = db.execute(sql).fetchall()
 	topics = [x[0] for x in topics]
 

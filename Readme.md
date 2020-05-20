@@ -59,3 +59,6 @@ articles = results['articles']
 
 ## Topics
 'tech', 'news', 'business', 'science', 'finance', 'food', 'politics', 'economics', 'travel', 'entertainment', 'music', 'sport', 'world'
+
+## Languages
+'EL', 'IT', 'ZH', 'EN', 'RU', 'CS', 'RO', 'FR', 'JA', 'DE', 'PT', 'ES', 'AR', 'HE', 'UK', 'PL', 'NL', 'TR', 'VI', 'KO', 'TH', 'ID', 'HR', 'DA', 'BG', 'NO', 'SK', 'FA', 'ET', 'SV', 'BN', 'GU', 'MK', 'PA', 'HU', 'SL', 'FI', 'LT', 'MR', 'NONE', 'HI'
