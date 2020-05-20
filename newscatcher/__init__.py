@@ -126,12 +126,9 @@ class Newscatcher:
 	
 		
 
-		meta = {'url' : self.url, 'topic' : topic,
-				'language' : language, 'country' : country}
-
 		db.close()
-		return {'url': meta['url'], 'main_topic' : topic,
-		'language' : meta['language'], 'country' : meta['country'], 'articles':articles}
+		return {'url': self.url, 'main_topic' : topic,
+		'language' : language, 'country' : country, 'articles':articles}
 
 def describe_url(website):
 	#return newscatcher fields that correspond to the url
