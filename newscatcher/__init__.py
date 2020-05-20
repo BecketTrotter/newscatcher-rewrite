@@ -79,7 +79,7 @@ class Newscatcher:
 
 		
 
-	def search(self, n=None):
+	def get_news(self, n=None):
 		#return results based on current stream
 		if self.topic is None:
 			sql = '''SELECT rss_url,topic_unified, language, clean_country from rss_main 
