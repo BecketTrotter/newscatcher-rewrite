@@ -36,7 +36,7 @@ articles / titles
 from newscatcher import Newscatcher
 
 nc = Newscatcher(website = 'nytimes.com')
-results = nc.get_news()
+results = nc.search()
 
 #results.keys() = 'url', 'language', 'country', 'articles'
 
@@ -50,7 +50,7 @@ first_article_title = articles[0]['title']
 
 nc = Newscatcher(website = 'nytimes.com', topic = 'politics') #topics available for a website, may be found with the describe_url function
 
-results = nc.get_news()
+results = nc.search()
 articles = results['articles']
 ```
 
