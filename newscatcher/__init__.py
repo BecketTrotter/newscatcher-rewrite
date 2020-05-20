@@ -78,6 +78,53 @@ class Newscatcher:
 		self.topic = topic
 
 		
+	def get_headlines(self, n=None):
+		if self.topic is None:
+			sql = '''SELECT rss_url,topic_unified, language, clean_country from rss_main 
+					 WHERE clean_url = '{}' AND main = 1;'''
+			sql = sql.format(self.url)
+		else:
+			sql = '''SELECT rss_url, topic_unified, language, clean_country from rss_main 
+					 WHERE clean_url = '{}' AND topic_unified = '{}';'''
+			sql = sql.format(self.url, self.topic)
+
+		db = sqlite3.connect(DB_FILE, isolation_level=None)
+
+		try:
+			rss_endpoint, topic, language, country = db.execute(sql).fetchone()
+			feed = feedparser.parse(rss_endpoint)
+		except:
+			if self.topic is not None:
+				sql = '''SELECT rss_url from rss_main 
+					 WHERE clean_url = '{}';'''
+				sql = sql.format(self.url)
+				
+				if len(db.execute(sql).fetchall()) > 0:
+					db.close()
+					print('Topic is not supported')
+					return
+				else:
+					print('Website is not supported')
+					return
+					db.close()
+			else:
+				print('Website is not supported')
+				return 
+
+		if feed['entries'] == []:
+			db.close()
+			print('\nNo headlines found check internet connection or query parameters\n')
+			return
+
+
+		title_list = []
+		for article in feed['entries']:
+			if 'title' in article:
+				title_list.append(article['title'])
+
+		return title_list
+
+
 
 	def get_news(self, n=None):
 		#return results based on current stream
