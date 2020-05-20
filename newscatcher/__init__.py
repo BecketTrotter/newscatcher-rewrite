@@ -153,7 +153,7 @@ def describe_url(website):
 	topics = db.execute(sql).fetchall()
 	topics = [x[0] for x in topics]
 
-	ret = {'url' : results[0], 'language' : results[1], 'country' : results[2] , 'main topic' : main, 'topics' : topics}
+	ret = {'url' : results[0], 'language' : results[1], 'country' : results[2] , 'main_topic' : main, 'topics' : topics}
 
 	return ret
 
