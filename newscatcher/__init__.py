@@ -121,10 +121,14 @@ class Newscatcher:
 		for article in feed['entries']:
 			if 'title' in article:
 				title_list.append(article['title'])
+			if n!= None:
+				if len(title_list) == n:
+					break
 
 		return title_list
 
-
+	def print_headlines(self, n=None):
+		print(self.get_headlines(n))
 
 	def get_news(self, n=None):
 		#return results based on current stream
