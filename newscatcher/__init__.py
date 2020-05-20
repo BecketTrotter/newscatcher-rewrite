@@ -139,13 +139,14 @@ def describe_url(website):
 	website = clean_url(website)
 	db = sqlite3.connect(DB_FILE, isolation_level=None)
 
-	sql = "SELECT topic_unified from rss_main WHERE clean_url = '{}' and main == 1 ".format(website)
-	main = db.execute(sql).fetchone()[0]
+	sql = "SELECT clean_url, language, clean_country, topic_unified from rss_main WHERE clean_url = '{}' and main == 1 ".format(website)
+	results = db.execute(sql).fetchone()
+	main = results[-1]
 
-
-	if results == None:
+	if main == None:
 		print('\nWebsite not supported\n')
 		return
+	
 	
 	if len(main) == 0:
 		print('\nWebsite note supported\n')
@@ -155,7 +156,7 @@ def describe_url(website):
 	topics = db.execute(sql).fetchall()
 	topics = [x[0] for x in topics]
 
-	ret = {'url' : results[0], 'language' : results[1], 'country' : results[4] , 'main topic' : main, 'topics' : topics}
+	ret = {'url' : results[0], 'language' : results[1], 'country' : results[2] , 'main topic' : main, 'topics' : topics}
 
 	return ret
 
